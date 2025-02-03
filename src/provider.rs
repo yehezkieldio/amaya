@@ -12,8 +12,7 @@ use which::which;
 use crate::{
     error::ConfigError,
     utils::{
-        APP_CONFIG_DIR, AmarisConfigurationHandler, AmarisInstaller, AmarisPackageJsonHandler,
-        CONFIG_DIR_NAME, PROVIDER_DIR_NAME,
+        AmarisConfigurationHandler, AmarisInstaller, AmarisPackageJsonHandler, AmarisPathHandler,
     },
 };
 
@@ -41,49 +40,10 @@ pub struct DynamicProvider {
 }
 
 impl DynamicProvider {
-    fn get_default_provider_path() -> Result<PathBuf, ConfigError> {
-        let home = dirs::home_dir()
-            .ok_or_else(|| ConfigError::PathError("Could not find home directory".into()))?;
-
-        Ok(home.join(APP_CONFIG_DIR).join(PROVIDER_DIR_NAME))
-    }
-
-    pub async fn ensure_provider_dir() -> Result<PathBuf, ConfigError> {
-        let provider_path = Self::get_default_provider_path()?;
-
-        if !provider_path.exists() {
-            tokio::fs::create_dir_all(&provider_path).await?;
-        }
-
-        Ok(provider_path)
-    }
-
-    fn get_default_config_path() -> Result<PathBuf, ConfigError> {
-        let home = dirs::home_dir()
-            .ok_or_else(|| ConfigError::PathError("Could not find home directory".into()))?;
-
-        Ok(home.join(APP_CONFIG_DIR).join(CONFIG_DIR_NAME))
-    }
-
-    pub async fn ensure_config_dir() -> Result<PathBuf, ConfigError> {
-        let config_path = Self::get_default_config_path()?;
-
-        if !config_path.exists() {
-            tokio::fs::create_dir_all(&config_path).await?;
-        }
-
-        Ok(config_path)
-    }
-
-    pub async fn load_config_file(path: &PathBuf) -> Result<String, ConfigError> {
-        let content = tokio::fs::read_to_string(path).await?;
-        Ok(content)
-    }
-
     pub async fn load_all(dir: Option<&PathBuf>) -> Result<Vec<Self>, ConfigError> {
         let dir = match dir {
             Some(d) => d.clone(),
-            None => Self::ensure_provider_dir().await?,
+            None => AmarisPathHandler::ensure_provider_dir().await?,
         };
 
         let mut providers = vec![];
