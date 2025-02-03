@@ -57,6 +57,60 @@ impl PrettierEslintProvider {
         })
     }
 
+    pub fn get_eslint_configuration_path() -> PathBuf {
+        PathBuf::from("eslint.config.js")
+    }
+
+    pub fn get_eslint_configuration() -> String {
+        r#"import js from "@eslint/js";
+        import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+        import reactHooks from "eslint-plugin-react-hooks";
+        import eslintPluginUnicorn from "eslint-plugin-unicorn";
+        import unusedImports from "eslint-plugin-unused-imports";
+        import globals from "globals";
+        import ts from "typescript-eslint";
+
+        /** @type {import('eslint').Linter.Config[]} */
+        export default [
+            {
+                files: ["**/*.{js,mjs,cjs,ts,tsx}"],
+                languageOptions: {
+                    globals: globals.builtin,
+                },
+                plugins: {
+                    "unicorn": eslintPluginUnicorn,
+                    "unused-imports": unusedImports,
+                    "react-hooks": reactHooks,
+                },
+            },
+            js.configs.recommended,
+            ...ts.configs.recommended,
+            {
+                rules: {
+                    "@typescript-eslint/no-non-null-assertion": "off",
+                    "@typescript-eslint/prefer-for-of": "off",
+                    "@typescript-eslint/no-unused-vars": "off",
+                    "unicorn/prefer-node-protocol": "error",
+                    "unicorn/prefer-number-properties": "error",
+                    "@typescript-eslint/no-inferrable-types": "warn",
+                    "unused-imports/no-unused-imports": "warn",
+                    "unused-imports/no-unused-vars": "warn",
+                    "react-hooks/rules-of-hooks": "off",
+                    "@typescript-eslint/no-extraneous-class": "off",
+                    "unicorn/no-static-only-class": "off",
+                    "unicorn/no-array-for-each": "error",
+                    "unicorn/no-useless-switch-case": "error",
+                    "unicorn/prefer-array-flat-map": "error",
+                    "no-console": "off",
+                    "@typescript-eslint/explicit-member-accessibility": "off",
+                    "no-nested-ternary": "off",
+                },
+            },
+            eslintPluginPrettierRecommended,
+        ];"#
+        .to_string()
+    }
+
     pub fn get_vscode_configuration() -> serde_json::Value {
         serde_json::json!({
             "typescript.tsdk": "node_modules/typescript/lib",
@@ -71,6 +125,7 @@ impl PrettierEslintProvider {
                     "severity": "warn",
                 },
             ],
+            "eslint.useFlatConfig": true,
             "files.exclude": {
                 "**/node_modules": true
             },
@@ -78,7 +133,18 @@ impl PrettierEslintProvider {
     }
 
     pub fn get_packages() -> Vec<&'static str> {
-        vec!["prettier", "@ianvs/prettier-plugin-sort-imports"]
+        vec![
+            "prettier",
+            "@ianvs/prettier-plugin-sort-imports",
+            "eslint",
+            "@eslint/js",
+            "typescript-eslint",
+            "eslint-config-prettier",
+            "eslint-plugin-prettier",
+            "eslint-plugin-react-hooks",
+            "eslint-plugin-unicorn",
+            "eslint-plugin-unused-imports",
+        ]
     }
 
     pub async fn install_packages(&self) -> Result<(), ConfigError> {
@@ -108,11 +174,20 @@ impl PrettierEslintProvider {
         )
         .await?;
 
+        AmarisConfigurator::write_file(
+            PrettierEslintProvider::get_eslint_configuration_path(),
+            &PrettierEslintProvider::get_eslint_configuration(),
+        )
+        .await?;
+
         Ok(())
     }
 
     pub async fn remove_configuration(&self) -> Result<(), ConfigError> {
         AmarisConfigurator::remove_file(PrettierEslintProvider::get_prettier_configuration_path())
+            .await?;
+
+        AmarisConfigurator::remove_file(PrettierEslintProvider::get_eslint_configuration_path())
             .await?;
 
         Ok(())
@@ -155,6 +230,8 @@ impl PrettierEslintProvider {
 
         updated_package_json["scripts"]["format"] = serde_json::json!("prettier --write .");
         updated_package_json["scripts"]["format:check"] = serde_json::json!("prettier --check .");
+        updated_package_json["scripts"]["lint"] = serde_json::json!("eslint .");
+        updated_package_json["scripts"]["lint:fix"] = serde_json::json!("eslint . --fix");
 
         AmarisConfigurator::write_package_json(&updated_package_json).await?;
 
@@ -174,6 +251,14 @@ impl PrettierEslintProvider {
             .as_object_mut()
             .unwrap()
             .remove("format:check");
+        updated_package_json["scripts"]
+            .as_object_mut()
+            .unwrap()
+            .remove("lint");
+        updated_package_json["scripts"]
+            .as_object_mut()
+            .unwrap()
+            .remove("lint:fix");
 
         AmarisConfigurator::write_package_json(&updated_package_json).await?;
 
