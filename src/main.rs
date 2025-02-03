@@ -1,4 +1,5 @@
 pub mod args;
+pub mod configurator;
 pub mod error;
 pub mod providers;
 pub mod registry;
