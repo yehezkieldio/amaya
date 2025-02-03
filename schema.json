@@ -1,31 +1,83 @@
 {
-    "name": "biome",
-    "description": "biome",
-    "package_manager": "bun",
-    "packages": [
-        "@biomejs/biome",
-        "ultracite"
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": [
+        "name",
+        "description",
+        "package_manager",
+        "packages",
+        "configuration",
+        "scripts"
     ],
-    "configuration": [
-        {
-            "file_location": "biome.json",
-            "file_name": "biome.json",
-            "source_from": "biome.json"
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "Name of the provider"
         },
-        {
-            "file_location": ".vscode/settings.json",
-            "file_name": "settings.json",
-            "source_from": "settings.json"
-        }
-    ],
-    "scripts": [
-        {
-            "name": "biome",
-            "script": "biome check ."
+        "description": {
+            "type": "string",
+            "description": "Description of what the provider does"
         },
-        {
-            "name": "biome:fix",
-            "script": "biome check . --write"
+        "package_manager": {
+            "type": "string",
+            "description": "Package manager to use (npm, yarn, pnpm, bun, etc)",
+            "enum": [
+                "bun"
+            ]
+        },
+        "packages": {
+            "type": "array",
+            "description": "List of packages to install",
+            "items": {
+                "type": "string"
+            }
+        },
+        "configuration": {
+            "type": "array",
+            "description": "Configuration files to be created/modified",
+            "items": {
+                "type": "object",
+                "required": [
+                    "file_location",
+                    "file_name",
+                    "source_from"
+                ],
+                "properties": {
+                    "file_location": {
+                        "type": "string",
+                        "description": "Path where the file should be placed"
+                    },
+                    "file_name": {
+                        "type": "string",
+                        "description": "Name of the file"
+                    },
+                    "source_from": {
+                        "type": "string",
+                        "description": "Source location of the configuration file"
+                    }
+                }
+            }
+        },
+        "scripts": {
+            "type": "array",
+            "description": "Scripts to run during setup",
+            "items": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "script"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the script"
+                    },
+                    "script": {
+                        "type": "string",
+                        "description": "Command to execute"
+                    }
+                }
+            }
         }
-    ]
+    }
 }
