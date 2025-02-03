@@ -1,8 +1,9 @@
 [package]
 name = "amaya"
-description = "Automate opinionated development configurations."
-license = "MIT"
 version = "0.1.0"
+description = "Automate opinionated development configurations."
+authors = ["Yehezkiel Dio Sinolungan <yehezkieldio@proton.me>"]
+license = "MIT"
 categories = ["command-line-utilities"]
 edition = "2024"
 
