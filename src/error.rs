@@ -17,6 +17,9 @@ pub enum ConfigError {
 
     #[error("Dependency installation failed: {0}")]
     DependencyError(String),
+
+    #[error("Conflict with existing configuration: {0}")]
+    ConflictError(String),
 }
 
 impl From<serde_json::Error> for ConfigError {

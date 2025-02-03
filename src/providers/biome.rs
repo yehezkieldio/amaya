@@ -6,6 +6,8 @@ use crate::configurator::AmarisConfigurator;
 use crate::error::ConfigError;
 use crate::registry::AmarisProvider;
 
+use super::prettier_eslint::PrettierEslintProvider;
+
 pub struct BiomeProvider;
 
 impl BiomeProvider {
@@ -229,6 +231,14 @@ impl AmarisProvider for BiomeProvider {
             ));
         }
 
+        if AmarisConfigurator::check_if_dependency_exists(&PrettierEslintProvider::get_packages())
+            .await?
+        {
+            return Err(ConfigError::ConflictError(
+                "Prettier + ESLint is already installed in this project and cannot be used with Biome".to_string(),
+            ));
+        }
+
         Ok(())
     }
 
@@ -262,6 +272,8 @@ impl AmarisProvider for BiomeProvider {
 
         println!("Removing package.json scripts...");
         BiomeProvider::remove_package_json().await?;
+
+        println!("Biome removed successfully!");
 
         Ok(())
     }

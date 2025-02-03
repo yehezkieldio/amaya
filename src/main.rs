@@ -6,7 +6,7 @@ pub mod registry;
 
 use args::CLI;
 use clap::Parser;
-use providers::biome::BiomeProvider;
+use providers::{biome::BiomeProvider, prettier_eslint::PrettierEslintProvider};
 use registry::AmarisRegistry;
 
 #[tokio::main]
@@ -14,7 +14,9 @@ async fn main() -> anyhow::Result<()> {
     let cli: CLI = CLI::parse();
 
     let mut registry: AmarisRegistry = AmarisRegistry::new();
+
     registry.register(BiomeProvider);
+    registry.register(PrettierEslintProvider);
 
     match cli.command.execute(&registry).await {
         Ok(_) => Ok(()),

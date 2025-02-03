@@ -200,6 +200,45 @@ impl AmarisConfigurator {
             .map(String::from))
     }
 
+    pub async fn get_package_dependencies() -> Result<Value, ConfigError> {
+        let package_json = Self::read_package_json().await?;
+
+        let mut all_deps = Vec::new();
+
+        if let Some(deps) = package_json.get("dependencies") {
+            if let Some(obj) = deps.as_object() {
+                all_deps.extend(obj.keys().cloned());
+            }
+        }
+
+        if let Some(dev_deps) = package_json.get("devDependencies") {
+            if let Some(obj) = dev_deps.as_object() {
+                all_deps.extend(obj.keys().cloned());
+            }
+        }
+
+        if let Some(peer_deps) = package_json.get("peerDependencies") {
+            if let Some(obj) = peer_deps.as_object() {
+                all_deps.extend(obj.keys().cloned());
+            }
+        }
+
+        Ok(Value::Array(
+            all_deps.into_iter().map(Value::String).collect(),
+        ))
+    }
+
+    pub async fn check_if_dependency_exists(names: &[&str]) -> Result<bool, ConfigError> {
+        let all_deps = Self::get_package_dependencies().await?;
+
+        Ok(names.iter().all(|name| {
+            all_deps
+                .as_array()
+                .unwrap()
+                .contains(&Value::String(name.to_string()))
+        }))
+    }
+
     pub async fn run_command(cmd: &str, args: &[&str]) -> Result<(), ConfigError> {
         let output = tokio::process::Command::new(cmd)
             .args(args)
