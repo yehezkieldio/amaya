@@ -256,12 +256,6 @@ impl AmarisConfigurator {
     }
 
     pub async fn write_file(path: PathBuf, content: &str) -> Result<(), ConfigError> {
-        if path.exists() {
-            return Err(ConfigError::AlreadyExists(
-                path.to_string_lossy().to_string(),
-            ));
-        }
-
         tokio::fs::write(&path, content)
             .await
             .map_err(|e| ConfigError::FileWriteError(e.to_string()))?;
