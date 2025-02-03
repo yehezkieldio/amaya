@@ -3,6 +3,7 @@ use clap::Subcommand;
 use inquire::Select;
 
 use crate::provider::AmarisRegistry;
+use crate::utils::AmarisInitialConfigHandler;
 
 #[derive(Parser)]
 #[command(name = env!("CARGO_PKG_NAME"))]
@@ -33,6 +34,8 @@ pub enum Commands {
     },
     /// Runs diagnostic commands to check the system's state.
     Doctor,
+    /// Populates the configuration root directory with default configurations.
+    Init,
 }
 
 impl Commands {
@@ -80,6 +83,10 @@ impl Commands {
                         }
                     }
                 }
+            }
+            Commands::Init => {
+                AmarisInitialConfigHandler::ensure_dirs().await?;
+                AmarisInitialConfigHandler::create_initial_config().await?;
             }
         }
         Ok(())

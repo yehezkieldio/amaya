@@ -8,7 +8,7 @@ use tokio::{
 
 use crate::{
     error::ConfigError,
-    provider::{ConfigEntry, ScriptEntry},
+    provider::{ConfigEntry, DynamicProvider, ScriptEntry},
 };
 
 pub const PROVIDER_DIR_NAME: &str = "providers";
@@ -40,6 +40,13 @@ fn merge_json_values(target: &mut Value, source: &Value) {
 pub struct AmarisPathHandler;
 
 impl AmarisPathHandler {
+    fn get_root_config_path() -> Result<PathBuf, ConfigError> {
+        let home = dirs::home_dir()
+            .ok_or_else(|| ConfigError::PathError("Could not find home directory".into()))?;
+
+        Ok(home.join(APP_CONFIG_DIR))
+    }
+
     fn get_default_provider_path() -> Result<PathBuf, ConfigError> {
         let home = dirs::home_dir()
             .ok_or_else(|| ConfigError::PathError("Could not find home directory".into()))?;
@@ -79,6 +86,14 @@ pub struct AmarisFileHandler;
 
 impl AmarisFileHandler {
     pub async fn write_file(path: PathBuf, content: &str) -> Result<(), ConfigError> {
+        if let Some(parent) = path.parent() {
+            if !parent.exists() {
+                tokio::fs::create_dir_all(parent)
+                    .await
+                    .map_err(|e| ConfigError::FileWriteError(e.to_string()))?;
+            }
+        }
+
         tokio::fs::write(&path, content)
             .await
             .map_err(|e| ConfigError::FileWriteError(e.to_string()))?;
@@ -375,6 +390,174 @@ impl AmarisPackageJsonHandler {
         }
 
         AmarisPackageJsonHandler::write(&updated_package_json).await?;
+
+        Ok(())
+    }
+}
+
+pub struct AmarisInitialConfigHandler;
+
+impl AmarisInitialConfigHandler {
+    pub async fn ensure_dirs() -> Result<(), ConfigError> {
+        let config_dir = AmarisPathHandler::get_default_config_path()?;
+        let provider_dir = AmarisPathHandler::get_default_provider_path()?;
+        let root = AmarisPathHandler::get_root_config_path()?;
+
+        if !config_dir.exists() {
+            tokio::fs::create_dir_all(&config_dir).await?;
+        }
+
+        if !provider_dir.exists() {
+            tokio::fs::create_dir_all(&provider_dir).await?;
+        }
+
+        println!("Configuration home directory created at {:?}", root);
+        println!("Configuration directory created at {:?}", config_dir);
+        println!("Provider directory created at {:?}", provider_dir);
+
+        println!("Start by adding a configuration provider to the provider directory");
+        println!("Then add a configuration to the configuration directory");
+
+        Ok(())
+    }
+
+    pub async fn create_initial_config() -> Result<(), ConfigError> {
+        let config_dir = AmarisPathHandler::get_default_config_path()?;
+        let provider_dir = AmarisPathHandler::get_default_provider_path()?;
+
+        let biome_provider = DynamicProvider {
+            name: "biome".to_string(),
+            description: "Biome".to_string(),
+            package_manager: "bun".to_string(),
+            packages: vec!["@biomejs/biome".to_string()],
+            configuration: vec![
+                ConfigEntry {
+                    file_location: "biome.json".to_string(),
+                    file_name: "biome.json".to_string(),
+                    source_from: "biome.json".to_string(),
+                },
+                ConfigEntry {
+                    file_location: ".vscode/settings.json".to_string(),
+                    file_name: "settings.json".to_string(),
+                    source_from: "settings.json".to_string(),
+                },
+            ],
+            scripts: vec![
+                ScriptEntry {
+                    name: "format".to_string(),
+                    script: "biome format .".to_string(),
+                },
+                ScriptEntry {
+                    name: "lint".to_string(),
+                    script: "biome lint .".to_string(),
+                },
+            ],
+        };
+        let biome_config_from_provider = serde_json::to_string_pretty(&biome_provider).unwrap();
+
+        let biome_config = serde_json::json!({
+            "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+            "extends": [
+                "ultracite"
+            ],
+            "vcs": {
+                "enabled": true,
+                "clientKind": "git",
+                "useIgnoreFile": true,
+                "defaultBranch": "master"
+            },
+            "organizeImports": {
+                "enabled": true
+            },
+            "files": {
+                "ignore": [
+                    "node_modules"
+                ]
+            },
+            "formatter": {
+                "enabled": true,
+                "formatWithErrors": false,
+                "indentStyle": "space",
+                "indentWidth": 4,
+                "lineWidth": 120
+            },
+            "linter": {
+                "enabled": true,
+                "rules": {
+                    "recommended": true,
+                    "style": {
+                        "noNonNullAssertion": "off",
+                        "useForOf": "error",
+                        "useNodejsImportProtocol": "error",
+                        "useNumberNamespace": "error",
+                        "noInferrableTypes": "warn"
+                    },
+                    "correctness": {
+                        "noUnusedImports": "warn",
+                        "noUnusedVariables": "info",
+                        "noUnusedFunctionParameters": "info",
+                        "useHookAtTopLevel": "off"
+                    },
+                    "complexity": {
+                        "noStaticOnlyClass": "off",
+                        "noThisInStatic": "off",
+                        "noForEach": "error",
+                        "noUselessSwitchCase": "error",
+                        "useFlatMap": "error"
+                    },
+                    "suspicious": {
+                        "noConsole": "off",
+                        "noConsoleLog": "off"
+                    },
+                    "nursery": {
+                        "useConsistentMemberAccessibility": "off",
+                        "noNestedTernary": "off"
+                    },
+                    "performance": {
+                        "useTopLevelRegex": "off"
+                    }
+                }
+            },
+            "javascript": {
+                "formatter": {
+                    "quoteStyle": "double",
+                    "indentWidth": 4,
+                    "lineWidth": 120
+                },
+                "globals": [
+                    "Bun"
+                ]
+            },
+            "json": {
+                "formatter": {
+                    "indentWidth": 4,
+                    "indentStyle": "space"
+                }
+            }
+        });
+
+        let vscode_settings = serde_json::json!({
+            "typescript.tsdk": "node_modules/typescript/lib",
+            "typescript.enablePromptUseWorkspaceTsdk": true,
+            "editor.defaultFormatter": "biomejs.biome",
+            "editor.codeActionsOnSave": {
+                "quickfix.biome": "explicit",
+                "source.organizeImports.biome": "explicit"
+            },
+            "files.exclude": {
+                "**/node_modules": true
+            }
+        });
+
+        let biome_config_path = config_dir.join("biome").join("biome.json");
+        let vscode_settings_path = config_dir.join("biome").join("settings.json");
+        let biome_provider_path = provider_dir.join("biome.json");
+
+        println!("Creating initial configuration files");
+
+        AmarisFileHandler::write_file(biome_config_path, &biome_config.to_string()).await?;
+        AmarisFileHandler::write_file(biome_provider_path, &biome_config_from_provider).await?;
+        AmarisFileHandler::write_file(vscode_settings_path, &vscode_settings.to_string()).await?;
 
         Ok(())
     }
