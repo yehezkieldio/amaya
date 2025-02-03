@@ -1,13 +1,11 @@
 pub mod args;
-pub mod configurator;
 pub mod error;
-pub mod providers;
-pub mod registry;
+pub mod provider;
+pub mod utils;
 
 use args::CLI;
 use clap::Parser;
-use providers::{biome::BiomeProvider, prettier_eslint::PrettierEslintProvider};
-use registry::AmarisRegistry;
+use provider::{AmarisRegistry, DynamicProvider};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -15,8 +13,10 @@ async fn main() -> anyhow::Result<()> {
 
     let mut registry: AmarisRegistry = AmarisRegistry::new();
 
-    registry.register(BiomeProvider);
-    registry.register(PrettierEslintProvider);
+    let providers = DynamicProvider::load_all(None).await?;
+    for provider in providers {
+        registry.register(provider);
+    }
 
     match cli.command.execute(&registry).await {
         Ok(_) => Ok(()),

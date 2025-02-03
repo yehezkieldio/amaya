@@ -1,0 +1,80 @@
+{
+    "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+    "extends": [
+        "ultracite"
+    ],
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true,
+        "defaultBranch": "master"
+    },
+    "organizeImports": {
+        "enabled": true
+    },
+    "files": {
+        "ignore": [
+            "node_modules"
+        ]
+    },
+    "formatter": {
+        "enabled": true,
+        "formatWithErrors": false,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 120
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "style": {
+                "noNonNullAssertion": "off",
+                "useForOf": "error",
+                "useNodejsImportProtocol": "error",
+                "useNumberNamespace": "error",
+                "noInferrableTypes": "warn"
+            },
+            "correctness": {
+                "noUnusedImports": "warn",
+                "noUnusedVariables": "info",
+                "noUnusedFunctionParameters": "info",
+                "useHookAtTopLevel": "off"
+            },
+            "complexity": {
+                "noStaticOnlyClass": "off",
+                "noThisInStatic": "off",
+                "noForEach": "error",
+                "noUselessSwitchCase": "error",
+                "useFlatMap": "error"
+            },
+            "suspicious": {
+                "noConsole": "off",
+                "noConsoleLog": "off"
+            },
+            "nursery": {
+                "useConsistentMemberAccessibility": "off",
+                "noNestedTernary": "off"
+            },
+            "performance": {
+                "useTopLevelRegex": "off"
+            }
+        }
+    },
+    "javascript": {
+        "formatter": {
+            "quoteStyle": "double",
+            "indentWidth": 4,
+            "lineWidth": 120
+        },
+        "globals": [
+            "Bun"
+        ]
+    },
+    "json": {
+        "formatter": {
+            "indentWidth": 4,
+            "indentStyle": "space"
+        }
+    }
+}

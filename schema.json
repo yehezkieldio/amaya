@@ -1,0 +1,31 @@
+{
+    "name": "biome",
+    "description": "biome",
+    "package_manager": "bun",
+    "packages": [
+        "@biomejs/biome",
+        "ultracite"
+    ],
+    "configuration": [
+        {
+            "file_location": "biome.json",
+            "file_name": "biome.json",
+            "source_from": "biome.json"
+        },
+        {
+            "file_location": ".vscode/settings.json",
+            "file_name": "settings.json",
+            "source_from": "settings.json"
+        }
+    ],
+    "scripts": [
+        {
+            "name": "biome",
+            "script": "biome check ."
+        },
+        {
+            "name": "biome:fix",
+            "script": "biome check . --write"
+        }
+    ]
+}

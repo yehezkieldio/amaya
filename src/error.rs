@@ -20,10 +20,22 @@ pub enum ConfigError {
 
     #[error("Conflict with existing configuration: {0}")]
     ConflictError(String),
+
+    #[error("Path error: {0}")]
+    PathError(String),
+
+    #[error("File read error: {0}")]
+    FileReadError(String),
 }
 
 impl From<serde_json::Error> for ConfigError {
     fn from(error: serde_json::Error) -> Self {
+        ConfigError::FileWriteError(error.to_string())
+    }
+}
+
+impl From<std::io::Error> for ConfigError {
+    fn from(error: std::io::Error) -> Self {
         ConfigError::FileWriteError(error.to_string())
     }
 }

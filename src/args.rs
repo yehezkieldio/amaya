@@ -2,7 +2,7 @@ use clap::Parser;
 use clap::Subcommand;
 use inquire::Select;
 
-use crate::registry::AmarisRegistry;
+use crate::provider::AmarisRegistry;
 
 #[derive(Parser)]
 #[command(name = env!("CARGO_PKG_NAME"))]
