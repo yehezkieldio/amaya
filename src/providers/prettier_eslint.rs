@@ -63,51 +63,51 @@ impl PrettierEslintProvider {
 
     pub fn get_eslint_configuration() -> String {
         r#"import js from "@eslint/js";
-        import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
-        import reactHooks from "eslint-plugin-react-hooks";
-        import eslintPluginUnicorn from "eslint-plugin-unicorn";
-        import unusedImports from "eslint-plugin-unused-imports";
-        import globals from "globals";
-        import ts from "typescript-eslint";
+import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import reactHooks from "eslint-plugin-react-hooks";
+import eslintPluginUnicorn from "eslint-plugin-unicorn";
+import unusedImports from "eslint-plugin-unused-imports";
+import globals from "globals";
+import ts from "typescript-eslint";
 
-        /** @type {import('eslint').Linter.Config[]} */
-        export default [
-            {
-                files: ["**/*.{js,mjs,cjs,ts,tsx}"],
-                languageOptions: {
-                    globals: globals.builtin,
-                },
-                plugins: {
-                    "unicorn": eslintPluginUnicorn,
-                    "unused-imports": unusedImports,
-                    "react-hooks": reactHooks,
-                },
-            },
-            js.configs.recommended,
-            ...ts.configs.recommended,
-            {
-                rules: {
-                    "@typescript-eslint/no-non-null-assertion": "off",
-                    "@typescript-eslint/prefer-for-of": "off",
-                    "@typescript-eslint/no-unused-vars": "off",
-                    "unicorn/prefer-node-protocol": "error",
-                    "unicorn/prefer-number-properties": "error",
-                    "@typescript-eslint/no-inferrable-types": "warn",
-                    "unused-imports/no-unused-imports": "warn",
-                    "unused-imports/no-unused-vars": "warn",
-                    "react-hooks/rules-of-hooks": "off",
-                    "@typescript-eslint/no-extraneous-class": "off",
-                    "unicorn/no-static-only-class": "off",
-                    "unicorn/no-array-for-each": "error",
-                    "unicorn/no-useless-switch-case": "error",
-                    "unicorn/prefer-array-flat-map": "error",
-                    "no-console": "off",
-                    "@typescript-eslint/explicit-member-accessibility": "off",
-                    "no-nested-ternary": "off",
-                },
-            },
-            eslintPluginPrettierRecommended,
-        ];"#
+/** @type {import('eslint').Linter.Config[]} */
+export default [
+    {
+        files: ["**/*.{js,mjs,cjs,ts,tsx}"],
+        languageOptions: {
+            globals: globals.builtin,
+        },
+        plugins: {
+            "unicorn": eslintPluginUnicorn,
+            "unused-imports": unusedImports,
+            "react-hooks": reactHooks,
+        },
+    },
+    js.configs.recommended,
+    ...ts.configs.recommended,
+    {
+        rules: {
+            "@typescript-eslint/no-non-null-assertion": "off",
+            "@typescript-eslint/prefer-for-of": "off",
+            "@typescript-eslint/no-unused-vars": "off",
+            "unicorn/prefer-node-protocol": "error",
+            "unicorn/prefer-number-properties": "error",
+            "@typescript-eslint/no-inferrable-types": "warn",
+            "unused-imports/no-unused-imports": "warn",
+            "unused-imports/no-unused-vars": "warn",
+            "react-hooks/rules-of-hooks": "off",
+            "@typescript-eslint/no-extraneous-class": "off",
+            "unicorn/no-static-only-class": "off",
+            "unicorn/no-array-for-each": "error",
+            "unicorn/no-useless-switch-case": "error",
+            "unicorn/prefer-array-flat-map": "error",
+            "no-console": "off",
+            "@typescript-eslint/explicit-member-accessibility": "off",
+            "no-nested-ternary": "off",
+        },
+    },
+    eslintPluginPrettierRecommended,
+];"#
         .to_string()
     }
 
@@ -117,12 +117,12 @@ impl PrettierEslintProvider {
             "typescript.enablePromptUseWorkspaceTsdk": true,
             "editor.defaultFormatter": "esbenp.prettier-vscode",
             "editor.codeActionsOnSave": {
-                "source.fixAll.eslint": "explicit",
+                "source.fixAll.eslint": "explicit"
             },
             "eslint.rules.customizations": [
                 {
                     "rule": "*",
-                    "severity": "warn",
+                    "severity": "warn"
                 },
             ],
             "eslint.useFlatConfig": true,
